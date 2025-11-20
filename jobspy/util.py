@@ -157,6 +157,15 @@ def markdown_converter(description_html: str):
     markdown = md(description_html)
     return markdown.strip()
 
+def plain_converter(decription_html:str):
+    from bs4 import BeautifulSoup
+    if decription_html is None:
+        return None
+    soup = BeautifulSoup(decription_html, "html.parser")
+    text = soup.get_text(separator=" ")
+    text = re.sub(r'\s+',' ',text)
+    return text.strip()
+
 
 def extract_emails_from_text(text: str) -> list[str] | None:
     if not text:

@@ -234,7 +234,7 @@ class Compensation(BaseModel):
 class DescriptionFormat(Enum):
     MARKDOWN = "markdown"
     HTML = "html"
-
+    PLAIN = "plain"
 
 class JobPost(BaseModel):
     id: str | None = None

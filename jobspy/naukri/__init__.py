@@ -164,12 +164,15 @@ class Naukri(Scraper):
         date_posted = self._parse_date(job.get("footerPlaceholderLabel"), job.get("createdDate"))
 
         job_url = f"https://www.naukri.com{job.get('jdURL', f'/job/{job_id}')}"
-        description = job.get("jobDescription") if full_descr else None
+        raw_description = job.get("jobDescription") if full_descr else None
+
+        job_type = parse_job_type(raw_description) if raw_description else None
+        company_industry = parse_company_industry(raw_description) if raw_description else None
+
+        description = raw_description
         if description and self.scraper_input.description_format == DescriptionFormat.MARKDOWN:
             description = markdown_converter(description)
 
-        job_type = parse_job_type(description) if description else None
-        company_industry = parse_company_industry(description) if description else None
         is_remote = is_job_remote(title, description or "", location)
         company_logo = job.get("logoPathV3") or job.get("logoPath")
 
