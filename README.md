@@ -1,3 +1,5 @@
+I created this fork to build a web-application for my non-technical background friends to be able to use it. Check https://jobs.tugrul.app
+
 <img src="https://github.com/cullenwatson/JobSpy/assets/78247585/ae185b7e-e444-4712-8bb9-fa97f53e896b" width="400">
 
 **JobSpy** is a job scraping library with the goal of aggregating all the jobs from popular job boards with one tool.
