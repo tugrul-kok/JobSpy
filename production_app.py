@@ -15,3 +15,4 @@ app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 31536000  # 1 year cache for static fi
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 8080))
     app.run(host='127.0.0.1', port=port, debug=False)
+

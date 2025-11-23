@@ -156,7 +156,8 @@
             </div>
             
             <div class="search-form">
-                <form id="jobSearchForm">
+                <form id="jobSearchForm" method="POST" action="/search">
+                    <!-- Basic Search Parameters -->
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label for="site_name" class="form-label"><i class="fas fa-globe"></i> Job Site</label>
@@ -166,6 +167,7 @@
                                 <option value="google">Google Jobs</option>
                                 <option value="glassdoor">Glassdoor</option>
                                 <option value="indeed">Indeed</option>
+                                <option value="ziprecruiter">ZipRecruiter</option>
                                 <option value="bayt">Bayt</option>
                                 <option value="naukri">Naukri</option>
                                 <option value="bdjobs">BDJobs</option>
@@ -177,16 +179,48 @@
                                    placeholder="e.g., Software Engineer, Data Scientist" required>
                         </div>
                     </div>
+
+                    <!-- Google-specific Search Term -->
+                    <div class="row" id="google_search_row" style="display: none;">
+                        <div class="col-12 mb-3">
+                            <label for="google_search_term" class="form-label"><i class="fab fa-google"></i> Google Jobs Search Term</label>
+                            <input type="text" class="form-control" id="google_search_term" name="google_search_term" 
+                                   placeholder="e.g., Software engineer jobs in San Francisco, CA since yesterday">
+                            <small class="form-text text-muted">Specific search term for Google Jobs (overrides other filters when using Google)</small>
+                        </div>
+                    </div>
                     
+                    <!-- Location and Basic Filters -->
                     <div class="row">
-                        <div class="col-md-4 mb-3">
+                        <div class="col-md-5 mb-3">
                             <label for="location" class="form-label"><i class="fas fa-map-marker-alt"></i> Location</label>
                             <input type="text" class="form-control" id="location" name="location" 
                                    placeholder="e.g., Netherlands, New York">
                         </div>
+                        <div class="col-md-2 mb-3">
+                            <label for="distance" class="form-label"><i class="fas fa-route"></i> Distance (miles)</label>
+                            <input type="number" class="form-control" id="distance" name="distance" 
+                                   placeholder="50" min="1" max="200">
+                        </div>
+                        <div class="col-md-5 mb-3">
+                            <label for="job_type" class="form-label"><i class="fas fa-user-tie"></i> Job Type</label>
+                            <select class="form-select" id="job_type" name="job_type">
+                                <option value="">Any type</option>
+                                <option value="fulltime">Full-time</option>
+                                <option value="parttime">Part-time</option>
+                                <option value="contract">Contract</option>
+                                <option value="internship">Internship</option>
+                                <option value="temporary">Temporary</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Results and Time Filters -->
+                    <div class="row">
                         <div class="col-md-4 mb-3">
                             <label for="results_wanted" class="form-label"><i class="fas fa-list-ol"></i> Number of Results</label>
                             <select class="form-select" id="results_wanted" name="results_wanted">
+                                <option value="15">15 results</option>
                                 <option value="25">25 results</option>
                                 <option value="50" selected>50 results</option>
                                 <option value="100">100 results</option>
@@ -195,12 +229,97 @@
                         </div>
                         <div class="col-md-4 mb-3">
                             <label for="hours_old" class="form-label"><i class="fas fa-clock"></i> Posted Within (Hours)</label>
-                            <select class="form-select" id="hours_old" name="hours_old">
-                                <option value="">Any time</option>
-                                <option value="24">Last 24 hours</option>
-                                <option value="72">Last 3 days</option>
-                                <option value="168">Last week</option>
-                            </select>
+                            <input type="number" class="form-control" id="hours_old" name="hours_old" 
+                                   placeholder="e.g., 24, 72, 168" min="1" max="8760">
+                            <small class="form-text text-muted">Leave empty for any time</small>
+                        </div>
+                    </div>
+
+                    <!-- Advanced Options (Collapsible) -->
+                    <div class="mb-3">
+                        <button class="btn btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#advancedOptions" aria-expanded="false">
+                            <i class="fas fa-cog"></i> Advanced Options
+                        </button>
+                    </div>
+
+                    <div class="collapse" id="advancedOptions">
+                        <!-- Boolean Filters -->
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="is_remote" name="is_remote">
+                                    <label class="form-check-label" for="is_remote">
+                                        <i class="fas fa-home"></i> Remote Jobs Only
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="easy_apply" name="easy_apply">
+                                    <label class="form-check-label" for="easy_apply">
+                                        <i class="fas fa-mouse-pointer"></i> Easy Apply Only
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="enforce_annual_salary" name="enforce_annual_salary">
+                                    <label class="form-check-label" for="enforce_annual_salary">
+                                        <i class="fas fa-dollar-sign"></i> Convert to Annual Salary
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- LinkedIn Specific Options -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="linkedin_fetch_description" name="linkedin_fetch_description">
+                                    <label class="form-check-label" for="linkedin_fetch_description">
+                                        <i class="fab fa-linkedin"></i> LinkedIn: Fetch Full Descriptions (Slower)
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="linkedin_company_ids" class="form-label"><i class="fab fa-linkedin"></i> LinkedIn Company IDs</label>
+                                <input type="text" class="form-control" id="linkedin_company_ids" name="linkedin_company_ids" 
+                                       placeholder="e.g., 1441, 2382, 1035 (comma-separated)">
+                            </div>
+                        </div>
+
+                        <!-- Technical Options -->
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <label for="description_format" class="form-label"><i class="fas fa-file-alt"></i> Description Format</label>
+                                <select class="form-select" id="description_format" name="description_format">
+                                    <option value="markdown" selected>Markdown</option>
+                                    <option value="html">HTML</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="verbose" class="form-label"><i class="fas fa-terminal"></i> Logging Level</label>
+                                <select class="form-select" id="verbose" name="verbose">
+                                    <option value="0">Errors Only</option>
+                                    <option value="1">Errors + Warnings</option>
+                                    <option value="2" selected>All Logs</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="user_agent" class="form-label"><i class="fas fa-user-secret"></i> Custom User Agent</label>
+                                <input type="text" class="form-control" id="user_agent" name="user_agent" 
+                                       placeholder="Leave empty for default">
+                            </div>
+                        </div>
+
+                        <!-- Proxy Configuration -->
+                        <div class="row mb-3">
+                            <div class="col-12">
+                                <label for="proxies" class="form-label"><i class="fas fa-shield-alt"></i> Proxies</label>
+                                <textarea class="form-control" id="proxies" name="proxies" rows="2" 
+                                          placeholder="One proxy per line: user:pass@host:port or host:port"></textarea>
+                                <small class="form-text text-muted">Optional: Add proxies to avoid rate limiting (one per line)</small>
+                            </div>
                         </div>
                     </div>
                     
@@ -296,6 +415,16 @@
                 window.open(`/download/${currentResultId}/${format}`, '_blank');
             }
         }
+
+        // Show/hide Google search term field based on site selection
+        document.getElementById('site_name').addEventListener('change', function() {
+            const googleSearchRow = document.getElementById('google_search_row');
+            if (this.value === 'google') {
+                googleSearchRow.style.display = 'block';
+            } else {
+                googleSearchRow.style.display = 'none';
+            }
+        });
     </script>
 </body>
 </html>

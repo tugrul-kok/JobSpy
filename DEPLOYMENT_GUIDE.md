@@ -378,3 +378,4 @@ Visit `https://jobs.tugrul.app` and verify:
 - [ ] No console errors
 
 Your JobSpy application should now be live at `https://jobs.tugrul.app`!
+
