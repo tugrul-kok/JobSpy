@@ -45,6 +45,7 @@ def search_jobs():
         description_format = request.form.get('description_format', 'markdown')
         verbose = int(request.form.get('verbose', 2))
         user_agent = request.form.get('user_agent', '').strip()
+        country_indeed = request.form.get('country_indeed', '').strip()
         
         # LinkedIn company IDs
         linkedin_company_ids_str = request.form.get('linkedin_company_ids', '').strip()
@@ -68,6 +69,39 @@ def search_jobs():
         google_search_term = google_search_term if google_search_term else None
         job_type = job_type if job_type else None
         user_agent = user_agent if user_agent else None
+        country_indeed = country_indeed if country_indeed else None
+
+        # Indeed / Glassdoor specific requirements & limitations
+        if site_name in ('indeed', 'glassdoor'):
+            # JobSpy requires country_indeed for Indeed & Glassdoor; default to USA if not provided
+            if not country_indeed:
+                country_indeed = 'USA'
+
+            # Indeed limitations: only ONE of (hours_old), (job_type & is_remote), (easy_apply)
+            selected_filter = None
+
+            if hours_old is not None:
+                selected_filter = 'hours_old'
+
+            if job_type or is_remote:
+                if selected_filter:
+                    # Drop job_type/is_remote if another filter already selected
+                    job_type = None
+                    is_remote = False
+                else:
+                    selected_filter = 'job_type_is_remote'
+
+            if easy_apply:
+                if selected_filter:
+                    # Drop easy_apply if another filter already selected
+                    easy_apply = False
+                else:
+                    selected_filter = 'easy_apply'
+
+        # LinkedIn limitations: only one of hours_old or easy_apply
+        if site_name == 'linkedin' and hours_old is not None and easy_apply:
+            # Prefer hours_old by default
+            easy_apply = False
         
         print(f"Searching for: {search_term} on {site_name}")
         
@@ -89,6 +123,7 @@ def search_jobs():
             'verbose': verbose,
             'user_agent': user_agent,
             'proxies': proxies,
+            'country_indeed': country_indeed,
         }
         
         # Add Google search term if provided
@@ -131,6 +166,8 @@ def search_jobs():
             cache_params['user_agent'] = user_agent
         if proxies:
             cache_params['proxies'] = proxies
+        if country_indeed:
+            cache_params['country_indeed'] = country_indeed
         
         results_cache[result_id] = {
             'jobs': jobs,
