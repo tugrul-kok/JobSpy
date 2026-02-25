@@ -45,8 +45,7 @@ def search_jobs():
         description_format = request.form.get('description_format', 'markdown')
         verbose = int(request.form.get('verbose', 2))
         user_agent = request.form.get('user_agent', '').strip()
-        country_indeed = request.form.get('country_indeed', '').strip()
-        
+
         # LinkedIn company IDs
         linkedin_company_ids_str = request.form.get('linkedin_company_ids', '').strip()
         linkedin_company_ids = None
@@ -69,13 +68,41 @@ def search_jobs():
         google_search_term = google_search_term if google_search_term else None
         job_type = job_type if job_type else None
         user_agent = user_agent if user_agent else None
-        country_indeed = country_indeed if country_indeed else None
 
-        # Indeed / Glassdoor specific requirements & limitations
+        # Indeed / Glassdoor: sadece ana Location kullanılır; ülke location'dan çıkarılır
+        country_indeed = None
         if site_name in ('indeed', 'glassdoor'):
-            # JobSpy requires country_indeed for Indeed & Glassdoor; default to USA if not provided
+            # Location'dan ülke tahmin et (JobSpy için country_indeed gerekli)
+            _location_lower = (location or '').strip().lower()
+            _country_from_location = (
+                ('turkey', 'türkiye', 'istanbul', 'ankara', 'izmir'),
+                ('netherlands', 'holland', 'amsterdam', 'rotterdam'),
+                ('germany', 'deutschland', 'berlin', 'munich', 'frankfurt'),
+                ('united kingdom', 'uk', 'london', 'manchester'),
+                ('france', 'paris', 'lyon', 'marseille'),
+                ('canada', 'toronto', 'vancouver', 'montreal'),
+                ('australia', 'sydney', 'melbourne'),
+                ('india', 'mumbai', 'bangalore', 'delhi'),
+                ('spain', 'madrid', 'barcelona'),
+                ('italy', 'rome', 'milan'),
+                ('brazil', 'são paulo', 'rio', 'brasil'),
+                ('mexico', 'méxico', 'mexico city'),
+            )
+            for names in _country_from_location:
+                if any(n in _location_lower for n in names):
+                    country_indeed = names[0]
+                    break
             if not country_indeed:
-                country_indeed = 'USA'
+                country_indeed = 'usa'
+            # Location boşsa ülkeye göre varsayılan konum kullan (Indeed bazen boş location'da sonuç dönmüyor)
+            if not location:
+                _default_locations = {
+                    'usa': 'United States', 'turkey': 'Turkey', 'uk': 'United Kingdom',
+                    'germany': 'Germany', 'netherlands': 'Netherlands', 'france': 'France',
+                    'canada': 'Canada', 'australia': 'Australia', 'india': 'India',
+                    'spain': 'Spain', 'italy': 'Italy', 'brazil': 'Brazil', 'mexico': 'Mexico',
+                }
+                location = _default_locations.get(country_indeed) or 'United States'
 
             # Indeed limitations: only ONE of (hours_old), (job_type & is_remote), (easy_apply)
             selected_filter = None
